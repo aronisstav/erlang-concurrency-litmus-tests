@@ -3,6 +3,9 @@
 
 -module(register_same_process).
 
+-operation_1({erlang,register,2}).
+-operation_2({erlang,register,2}).
+
 -define(RESULT_1, true).
 -define(RESULT_2, false).
 
