@@ -4,12 +4,13 @@
 %%% litmus.hrl exports a number of `possible_x/0` functions that are
 %%% generated for each of the possible results of a litmus test. It
 %%% also exports the `exhaustive/0` function, useful for checking
-%%% whether any other results are possible.
+%%% whether any other results are possible. Finally it exports the
+%%% `test/0` function itself, for easier testing/debugging.
 
 -include_lib("stdlib/include/assert.hrl").
 
 %%% Base exports
--export([exhaustive/0, possible_1/0]).
+-export([exhaustive/0, possible_1/0, test/0]).
 
 %%% Additional exports and definition of the list of ALL results.
 -ifdef(RESULT_2).
