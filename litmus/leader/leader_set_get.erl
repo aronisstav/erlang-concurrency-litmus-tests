@@ -1,4 +1,4 @@
-%%% @doc Setting leader for another process
+%%% @doc Setting leader for another process vs it reading it
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
 -module(leader_set_get).
