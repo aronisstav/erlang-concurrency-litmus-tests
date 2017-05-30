@@ -5,7 +5,7 @@
 %%% generated for each of the possible results of a litmus test. It
 %%% also exports the `exhaustive/0` function, useful for checking
 %%% whether any other results are possible. Finally it exports the
-%%% `test/0` function itself, for easier testing/debugging.
+%%% `test/0` function itself, for easier debugging.
 
 -include_lib("stdlib/include/assert.hrl").
 
