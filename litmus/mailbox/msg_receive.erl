@@ -1,10 +1,9 @@
-%%% @doc Message delivery race
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
--module(deliver_deliver).
+-module(msg_receive).
 
--operation_1(deliver).
--operation_2(deliver).
+-operation_1(msg_deliver).
+-operation_2('receive').
 
 -define(RESULT_1, first).
 -define(RESULT_2, second).
@@ -14,7 +13,8 @@
 test() ->
   P = self(),
   spawn(fun() -> P ! first end),
-  spawn(fun() -> P ! second end),
   receive
     M -> M
+  after
+    42 -> second
   end.
