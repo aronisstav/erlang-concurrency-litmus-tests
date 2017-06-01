@@ -1,7 +1,7 @@
 %%% @doc A set leader operation races with the exit of the leader PID.
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
--module(leader_dead).
+-module(exit_group_leader_leader).
 
 -operation_1(exit).
 -operation_2({erlang,group_leader,2}).
@@ -11,12 +11,17 @@
 
 -include("../../headers/litmus.hrl").
 
+p1() ->
+  ok.
+
+p2(Q) ->
+  erlang:group_leader(Q, self()).
+
 test() ->
-  Fun1 = fun() -> receive ok -> ok end end,
-  Fun2 = fun(Q) -> fun() -> erlang:group_leader(Q, self()) end end,
-  Q      = spawn(Fun1),
-  {P, M} = spawn_monitor(Fun2(Q)),
-  Q ! ok,
+  Fun1 = fun() -> p1() end,
+  P1 = spawn(Fun1),
+  Fun2 = fun() -> p2(P1) end,
+  {P2, M} = spawn_monitor(Fun2),
   receive
-    {'DOWN', M, process, P, Tag} -> Tag =/= normal
+    {'DOWN', M, process, P2, Tag} -> Tag =/= normal
   end.
