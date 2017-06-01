@@ -1,10 +1,10 @@
-%%% @doc Setting leader for another process, vs it spawning a child
+%%% @doc Setting leader for another process vs it reading it
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
--module(leader_set_spawn).
+-module(group_leader_get_set).
 
--operation_1({erlang,group_leader,2}).
--operation_2({erlang,spawn,1}).
+-operation_1({erlang,group_leader,0}).
+-operation_2({erlang,group_leader,2}).
 
 -define(RESULT_1, original).
 -define(RESULT_2, new).
@@ -17,15 +17,12 @@ test() ->
   group_leader(P, P),
   %% A target process will have it's leader changed by another process.
   Fun1 = fun() ->
-             Fun3 =
-               fun() ->
-                   %% Wait for a signal and report back to coordinator
-                   receive
-                     ok -> P ! group_leader()
-                   end
-               end,
-             Q1 = spawn(Fun3),
-             receive ok -> Q1 ! ok end
+             %% Read the leader
+             L = group_leader(),
+             %% Wait for a signal and report back to coordinator
+             receive
+               ok -> P ! L
+             end
          end,
   Q = spawn(Fun1),
   %% A process that changes the leader of Q and reports back to

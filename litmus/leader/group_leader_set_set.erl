@@ -1,7 +1,7 @@
 %%% @doc Setting leader for another process
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
--module(set_leader).
+-module(group_leader_set_set).
 
 -operation_1({erlang,group_leader,2}).
 -operation_2({erlang,group_leader,2}).
