@@ -1,7 +1,6 @@
-%%% @doc Two processes registering with the same name.
 %%% @author Stavros Aronis <aronisstav@gmail.com>
 
--module(register_same_name).
+-module(register_register_pid).
 
 -operation_1({erlang,register,2}).
 -operation_2({erlang,register,2}).
@@ -12,9 +11,10 @@
 -include("../../headers/litmus.hrl").
 
 test() ->
-  Fun = fun() -> register(same_name, self()) end,
-  {P, M} = spawn_monitor(Fun),
-  _      = spawn(Fun),
+  Parent = self(),
+  Fun = fun(Name) -> fun() -> register(Name, Parent) end end,
+  {P, M} = spawn_monitor(Fun(alpha)),
+  _      = spawn(Fun(beta)),
   receive
     {'DOWN', M, process, P, Tag} -> Tag =/= normal
   end.
