@@ -17,7 +17,7 @@ p2(P1) ->
   exit(P1, abnormal).
 
 test() ->
-  Timer = erlang:send_after(42, self(), foo), []),
+  Timer = erlang:send_after(42, self(), foo, []),
   Fun1 = fun() -> p1(Timer) end,
   {P1,_}  = spawn_monitor(Fun1),
   Fun2 = fun() -> p2(P1) end,
