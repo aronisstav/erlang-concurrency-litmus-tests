@@ -10,11 +10,19 @@
 
 -include("../../headers/litmus.hrl").
 
+p1(P) ->
+  register(name1, P).
+
+p2(P) ->
+  register(name2, P).
+
 test() ->
-  Parent = self(),
-  Fun = fun(Name) -> fun() -> register(Name, Parent) end end,
-  {P, M} = spawn_monitor(Fun(alpha)),
-  _      = spawn(Fun(beta)),
+  P = self(),
+  Fun1 = fun() -> p1(P) end,
+  P1   = spawn(Fun),
+  Fun2 = fun() -> p2(P) end,
+  {P2, M} = spawn_monitor(Fun2),
   receive
-    {'DOWN', M, process, P, Tag} -> Tag =/= normal
+    {'DOWN', M, process, P, Tag} ->
+      Tag =/= normal
   end.
