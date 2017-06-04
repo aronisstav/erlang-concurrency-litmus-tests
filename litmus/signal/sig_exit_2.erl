@@ -17,9 +17,10 @@ p2(P1) ->
   exit(P1, abnormal).
 
 test() ->
+  process_flag(trap_exit, true),
   P = self(),
   Fun1 = fun() -> p1(P) end,
-  P1   = spawn(Fun1),
+  {P1, M} = spawn_monitor(Fun1),
   Fun2 = fun() -> p2(P1) end,
   _    = spawn(Fun2),
   receive

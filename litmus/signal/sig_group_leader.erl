@@ -19,7 +19,7 @@ p2(P1) ->
 test() ->
   P = self(),
   Fun1 = fun() -> p1(P) end,
-  P1   = spawn(Fun1),
+  {P1,_} = spawn_monitor(Fun1),
   Fun2 = fun() -> p2(P1) end,
   _    = spawn(Fun2),
   receive
