@@ -18,10 +18,10 @@ p2() ->
 
 test() ->
   Fun1 = fun() -> p1() end,
-  P1   = spawn(Fun),
+  _P1  = spawn(Fun1),
   Fun2 = fun() -> p2() end,
   {P2, M} = spawn_monitor(Fun2),
   receive
-    {'DOWN', M, process, P, Tag} ->
+    {'DOWN', M, process, P2, Tag} ->
       Tag =/= normal
   end.
