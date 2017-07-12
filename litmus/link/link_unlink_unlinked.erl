@@ -11,12 +11,19 @@
 -include("../../headers/litmus.hrl").
 
 p1() ->
-  %%STUB
-  ok.
+  receive
+    {go, P2} ->
+      unlink(P2),
+      exit(abnormal)
+  end.
 
 p2(P1) ->
-  %%STUB
-  ok.
+  _ = monitor(process, P1),
+  P1 ! {go, self()},
+  link(P1),
+  receive
+    _Monitor -> ok
+  end.
 
 test() ->
   Fun1 = fun() -> p1() end,
