@@ -10,24 +10,17 @@
 
 -include("../../headers/litmus.hrl").
 
-p1() ->
-  receive ok -> ok end,
-  unregister(name),
-  receive ok -> ok end.
-
-p2() ->
-  monitor(process, foo).
+p1(Main) ->
+  register(name, self()),
+  Main ! ok,
+  unregister(name).
 
 test() ->
-  Fun1 = fun() -> p1() end,
+  Main = self(),
+  Fun1 = fun() -> p1(Main) end,
   P1 = spawn(Fun1),
-  register(name, P1),
-  P1 ! ok,
-  Fun2 = fun() -> p2() end,
-  {P2, M} = spawn_monitor(Fun2),
-  Result =
-    receive
-      {'DOWN', M, process, P2, Tag} -> Tag =/= normal
-    end,
-  P1 ! ok,
-  Result.
+  receive ok -> ok end,
+  M = monitor(process, name),
+  receive
+    {'DOWN', M, process, _, Tag} -> Tag =/= normal
+  end.
