@@ -93,7 +93,7 @@ run_test(File, Test, Server) ->
   Out = io_lib:format("~s-~p.txt",[Basename, Test]),
   Opts =
     "--assertions_only -v0 --ignore_error deadlock"
-    " --dpor none --disable_sleep_sets",
+    " --dpor none --disable_sleep_sets --instant_delivery false",
   Command =
     io_lib:format("concuerror ~s -f ~s -t ~p -o ~s", [Opts, File, Test, Out]),
   Exit = run_and_get_exit_status(Command),
