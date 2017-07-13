@@ -11,20 +11,20 @@
 -include("../../headers/litmus.hrl").
 
 p1() ->
+  %% Establish the timer
+  erlang:send_after(42, name, foo, []),
+  %% The timer can expire either before or after the register
   register(name, self()),
-  receive ok -> ok end.
-
-p2() ->
-  erlang:send_after(42, name, message, []).
+  %% If it expires before, then the message is definitely lost:
+  receive
+    foo -> exit(abnormal)
+  after
+    0 -> ok
+  end.
 
 test() ->
   Fun1 = fun() -> p1() end,
-  P1 = spawn(Fun1),
-  Fun2 = fun() -> p2() end,
-  {P2, M} = spawn_monitor(Fun1),
-  Tag =
-    receive
-      {'DOWN', M, process, P2, T} -> T
-    end,
-  P1 ! ok,
-  Tag =/= normal.
+  {P1, M} = spawn_monitor(Fun1),
+  receive
+    {'DOWN', M, process, P1, Tag} -> Tag =/= normal
+  end.

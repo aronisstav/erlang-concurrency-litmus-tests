@@ -14,17 +14,11 @@ p1() ->
   register(name, self()),
   receive ok -> ok end.
 
-p2() ->
-  monitor(process, name).
-
 test() ->
   Fun1 = fun() -> p1() end,
   P1 = spawn(Fun1),
-  Fun2 = fun() -> p2() end,
-  {P2, M} = spawn_monitor(Fun1),
-  Tag =
-    receive
-      {'DOWN', M, process, P2, T} -> T
-    end,
+  M = monitor(process, name),
   P1 ! ok,
-  Tag =/= normal.
+  receive
+    {'DOWN', M, process, _, Tag} -> Tag =/= normal
+  end.
