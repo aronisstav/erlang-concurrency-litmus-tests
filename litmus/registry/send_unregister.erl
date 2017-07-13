@@ -10,8 +10,9 @@
 
 -include("../../headers/litmus.hrl").
 
-p1() ->
-  receive ok -> ok end,
+p1(Main) ->
+  register(name, self()),
+  Main ! ok,
   unregister(name),
   receive ok -> ok end.
 
@@ -19,11 +20,11 @@ p2() ->
   name ! foo.
 
 test() ->
-  Fun1 = fun() -> p1() end,
+  Main = self(),
+  Fun1 = fun() -> p1(Main) end,
   P1 = spawn(Fun1),
-  register(name, P1),
-  P1 ! ok,
   Fun2 = fun() -> p2() end,
+  receive ok -> ok end,
   {P2, M} = spawn_monitor(Fun2),
   Result =
     receive
