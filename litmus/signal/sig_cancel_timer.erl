@@ -11,7 +11,7 @@
 -include("../../headers/litmus.hrl").
 
 p1(Timer) ->
-  erlang:cancel_timer(Timer, []).
+  erlang:cancel_timer(Timer).
 
 p2(P1) ->
   exit(P1, abnormal).
@@ -25,8 +25,4 @@ test() ->
   receive
     {'DOWN', M, process, P1, _} -> ok
   end,
-  receive
-    foo -> true
-  after
-    100 -> false
-  end.
+  false =:= erlang:read_timer(Timer).

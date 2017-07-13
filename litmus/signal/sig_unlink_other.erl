@@ -11,25 +11,23 @@
 -include("../../headers/litmus.hrl").
 
 p1(P) ->
-  receive
-    {ok, P2} ->
-      P ! ok,
-      unlink(P2)
-  end.
+  unlink(P).
 
 p2(P1) ->
-  link(P1),
-  P1 ! {ok, self()}.
+  exit(P1, abnormal).
 
 test() ->
   P = self(),
+  process_flag(trap_exit, true),
   Fun1 = fun() -> p1(P) end,
-  P1   = spawn(Fun1),
+  {P1, M} = spawn_opt(Fun1, [link, monitor]),
   Fun2 = fun() -> p2(P1) end,
-  _    = spawn_monitor(Fun2),
-  receive ok ->
-      exit(P1, abnormal)
+  _ = spawn(Fun2),
+  receive
+    {'DOWN', M, process, P1, _} -> ok
   end,
   receive
-    {'DOWN', M, process, P2, Tag} -> Tag =/= normal
+    _Exit -> true
+  after
+    0 -> false
   end.
