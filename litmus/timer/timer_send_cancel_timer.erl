@@ -11,19 +11,20 @@
 -include("../../headers/litmus.hrl").
 
 p1() ->
-  %%STUB
-  ok.
-
-p2(P1) ->
-  %%STUB
-  ok.
+  %% Establish the timer
+  T = erlang:send_after(42, self(), foo, []),
+  %% The timer can expire either before or after the cancel
+  erlang:cancel_timer(T),
+  %% If it expires before, then the message already exists.
+  receive
+    foo -> exit(abnormal)
+  after
+    0 -> ok
+  end.
 
 test() ->
   Fun1 = fun() -> p1() end,
-  P1   = spawn(Fun1),
-  Fun2 = fun() -> p2(P1) end,
-  {P2, M} = spawn_monitor(Fun2),
+  {P1, M} = spawn_monitor(Fun1),
   receive
-    {'DOWN', M, process, P2, Tag} ->
-      Tag =/= normal
+    {'DOWN', M, process, P1, Tag} -> Tag =/= normal
   end.
