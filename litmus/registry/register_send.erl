@@ -21,7 +21,7 @@ test() ->
   Fun1 = fun() -> p1() end,
   P1 = spawn(Fun1),
   Fun2 = fun() -> p2() end,
-  {P2, M} = spawn_monitor(Fun1),
+  {P2, M} = spawn_monitor(Fun2),
   Tag =
     receive
       {'DOWN', M, process, P2, T} -> T
