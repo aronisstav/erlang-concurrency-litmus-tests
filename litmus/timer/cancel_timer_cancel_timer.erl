@@ -10,18 +10,17 @@
 
 -include("../../headers/litmus.hrl").
 
-p1() ->
-  %%STUB
-  ok.
+p1(T) ->
+  erlang:cancel_timer(T).
 
-p2(P1) ->
-  %%STUB
-  ok.
+p2(T) ->
+  true = (false =/= erlang:cancel_timer(T)).
 
 test() ->
-  Fun1 = fun() -> p1() end,
+  T = erlang:send_after(42, self(), foo, []),
+  Fun1 = fun() -> p1(T) end,
   P1   = spawn(Fun1),
-  Fun2 = fun() -> p2(P1) end,
+  Fun2 = fun() -> p2(T) end,
   {P2, M} = spawn_monitor(Fun2),
   receive
     {'DOWN', M, process, P2, Tag} ->
