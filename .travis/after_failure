@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Show all lingering *.txt
+tail -n +1 -- *.txt

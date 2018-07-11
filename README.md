@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/aronisstav/erlang-concurrency-litmus-tests.svg?branch=master)](https://travis-ci.com/aronisstav/erlang-concurrency-litmus-tests)
+
 # erlang-concurrency-litmus-tests
 A repository of "litmus" tests showing the interaction between Erlang's built-in operations.
 

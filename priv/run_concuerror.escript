@@ -1,8 +1,12 @@
 #!/usr/bin/env escript
 %% -*- erlang-indent-level: 2 -*-
-%%! +S1 -noshell
+%%! -noshell
 
-%%% This script can be used to run Concuerror on specified/all tests.
+%%% This script can be used to run Concuerror on specified tests.
+
+options() ->
+  "--assertions_only -v0 --ignore_error deadlock"
+    " --instant_delivery false --assume_racing false".
 
 %%%-----------------------------------------------------------------------------
 
@@ -14,25 +18,22 @@ expected_exit(possible_2) -> 1;
 expected_exit(possible_3) -> 1;
 expected_exit(_) -> -1.
 
-%%% How many jobs to run in parallel
-
--define(JOBS, 8).
-
 %%%-----------------------------------------------------------------------------
 
 main([]) ->
-  %% Implied argument: all tests above.
-  ScriptDir = filename:dirname(escript:script_name()),
-  TestsDir = filename:join([ScriptDir, "litmus"]),
-  main([TestsDir]);
+  %% Implied argument: all tests below
+  {ok, Cwd} = file:get_cwd(),
+  main([Cwd]);
 main(Tests) ->
   case os:find_executable("concuerror") =:= false of
-    true -> to_stderr("Concuerror's executable must be in the PATH", []);
-    false ->
-      Server = initialize(),
-      ok = inspect_files(Tests, Server),
-      finish(Server)
-  end.
+    true ->
+      to_stderr("Concuerror's executable must be in the PATH", []),
+      halt(2);
+    false -> ok
+  end,
+  Server = initialize(),
+  ok = inspect_files(Tests, Server),
+  finish(Server).
 
 %%%-----------------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ main(Tests) ->
    , failed = 0
    , files  = 0
    , finish = false
-   , limit  = ?JOBS
+   , limit  = parallelism()
    , tests  = 0
    }).
 
@@ -82,7 +83,7 @@ loop(State) ->
           false -> Failed + 1
         end,
       loop(State#state{done = NewDone, failed = NewFailed, limit = NewLimit});
-    {finish, Report} ->
+    {finish, Report} when Limit > 0 ->
       loop(State#state{finish = {true, Report}})
   end.
 
@@ -91,9 +92,7 @@ loop(State) ->
 run_test(File, Test, Server) ->
   Basename = filename:basename(File, ".erl"),
   Out = io_lib:format("~s-~p.txt",[Basename, Test]),
-  Opts =
-    "--assertions_only -v0 --ignore_error deadlock"
-    " --dpor none --disable_sleep_sets --instant_delivery false",
+  Opts = options(),
   Command =
     io_lib:format("concuerror ~s -f ~s -t ~p -o ~s", [Opts, File, Test, Out]),
   Exit = run_and_get_exit_status(Command),
@@ -108,7 +107,7 @@ run_test(File, Test, Server) ->
   Server ! {test, File, Test, Status}.
 
 run_and_get_exit_status(Command) ->
-  Port = open_port({spawn, Command}, [stream, in, eof, hide, exit_status]),
+  Port = open_port({spawn, Command}, [exit_status]),
   get_exit(Port, infinity).
 
 get_exit(Port, Timeout) ->
@@ -144,8 +143,9 @@ extract_tests(File, Server) ->
     true ->
       case compile:file(File, [binary]) of
         error ->
-          print_test(File, 'n/a', skip),
-          ok;
+          print_test(File, 'compile', error),
+          compile:file(File, [binary, report_errors]),
+          halt(1);
         {ok, Module, Binary} ->
           {module, Module} = code:load_binary(Module, File, Binary),
           Exports = Module:module_info(exports),
@@ -189,7 +189,8 @@ finish(Server) ->
 %%%-----------------------------------------------------------------------------
 
 print_header() ->
-  io:format("~-61s~-12s~-7s~n",["File", "Test", "Result"]),
+  to_stderr("Concurrent jobs: ~w", [parallelism()]),
+  to_stderr("~-61s~-12s~-7s",["File", "Test", "Result"]),
   print_line().
 
 print_test(File, Test, Status) ->
@@ -204,8 +205,8 @@ print_test(File, Test, Status) ->
       _ -> "\033[91m"
     end,
   EndC = "\033[0m",
-  io:format(
-    "~-61s~-12s~s~s~-7s~s~n",
+  to_stderr(
+    "~-61s~-12s~s~s~-7s~s",
     [TBasename, TTest, Bold, Color, TStatus, EndC]
    ).
 
@@ -222,14 +223,17 @@ trim(String, Length) ->
 
 print_footer(Files, Tests, Failed) ->
   print_line(),
-  io:format("  Suites: ~p~n", [Files]),
-  io:format("   Tests: ~p~n", [Tests]),
-  io:format("  Failed: ~p~n", [Failed]).
+  to_stderr("  Suites: ~p", [Files]),
+  to_stderr("   Tests: ~p", [Tests]),
+  to_stderr("  Failed: ~p", [Failed]).
 
 print_line() ->
-  io:format("~80..-s~n", [""]).
+  to_stderr("~80..-s", [""]).
 
 %%%-----------------------------------------------------------------------------
 
 to_stderr(Format, Data) ->
   io:format(standard_error, Format ++ "~n", Data).
+
+parallelism() ->
+  erlang:system_info(schedulers).

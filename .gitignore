@@ -1,3 +1,5 @@
 *.beam
 erl_crash.dump
 concuerror_report.txt
+/*.txt
+/Concuerror

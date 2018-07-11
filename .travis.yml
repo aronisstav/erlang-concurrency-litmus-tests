@@ -12,8 +12,12 @@ otp_release:
 
   - 21.0
 
-install: true
+install: .travis/install
 
-script: true
+script: .travis/script
 
-after_failure: true
+after_failure: .travis/after_failure
+
+cache:
+  directories:
+  - "$HOME/.cache/rebar3"
