@@ -1,0 +1,19 @@
+sudo: false
+
+language: erlang
+
+branches:
+  only:
+  - master
+  - /^\d+\.\d+\.\d+$/ # version tags
+
+# Which OTP releases to test (keep latest on top)
+otp_release:
+
+  - 21.0
+
+install: true
+
+script: true
+
+after_failure: true
