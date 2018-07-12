@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+export PATH="$(pwd)/Concuerror/bin:$PATH"
+./priv/run_concuerror.escript litmus
